@@ -1,0 +1,153 @@
+<template>
+    <section class="notes-shell">
+        <div class="sticky-header">
+            <div class="header-row">
+                <div>
+                    <h2 class="header-title">Notes</h2>
+                    <template if:true={lookupFieldApiName}>
+                        <p class="header-subtitle">Showing notes related through {lookupFieldApiName}</p>
+                    </template>
+                </div>
+                <div class="header-actions">
+                    <lightning-button label={viewToggleLabel} onclick={handleToggleView}></lightning-button>
+                    <lightning-button label="New" variant="brand" onclick={handleNew} disabled={isNewDisabled}></lightning-button>
+                </div>
+            </div>
+
+            <div class="filters">
+                <lightning-input
+                    type="search"
+                    label="Keyword"
+                    value={keyword}
+                    onchange={handleKeywordChange}
+                    placeholder="Search title">
+                </lightning-input>
+
+                <lightning-combobox
+                    label="Topic"
+                    value={topic}
+                    options={topicOptionsWithAll}
+                    onchange={handleTopicChange}>
+                </lightning-combobox>
+
+                <lightning-combobox
+                    label="Created By"
+                    value={createdById}
+                    options={createdByOptionsWithAll}
+                    onchange={handleCreatedByChange}>
+                </lightning-combobox>
+
+                <div class="filter-actions">
+                    <lightning-button label="Clear" onclick={handleClearFilters}></lightning-button>
+                </div>
+            </div>
+        </div>
+
+        <template if:true={errorMessage}>
+            <div class="error-panel" role="alert">{errorMessage}</div>
+        </template>
+
+        <template if:true={showExpandedView}>
+            <div class="notes-list">
+                <template for:each={notes} for:item="note">
+                    <article key={note.id} class="note-card">
+                        <div class="note-meta">
+                            <span class="note-topic">{note.topicLabel}</span><span>: </span>
+                            <span>{note.createdByName}</span>
+                            <span> - </span>
+                            <lightning-formatted-date-time
+                                value={note.createdDate}
+                                year="numeric"
+                                month="short"
+                                day="2-digit"
+                                hour="2-digit"
+                                minute="2-digit">
+                            </lightning-formatted-date-time>
+                        </div>
+
+                        <a class="note-title" href={note.recordUrl} target="_blank" rel="noopener noreferrer">
+                            {note.title}
+                        </a>
+
+                        <div class="note-body">
+                            <lightning-formatted-rich-text value={note.body}></lightning-formatted-rich-text>
+                        </div>
+                    </article>
+                </template>
+            </div>
+        </template>
+
+        <template if:true={showListView}>
+            <div class="list-view">
+                <table class="slds-table slds-table_cell-buffer slds-table_bordered notes-table">
+                    <thead>
+                        <tr>
+                            <th scope="col" aria-sort={createdDateAriaSort} class="date-column">
+                                <button class="sort-button" type="button" data-sort-by="CreatedDate" onclick={handleSort}>
+                                    <span>Created Date/Time</span>
+                                    <template if:true={isCreatedDateSorted}>
+                                        <lightning-icon icon-name={sortIconName} size="xx-small" alternative-text=""></lightning-icon>
+                                    </template>
+                                </button>
+                            </th>
+                            <th scope="col" aria-sort={topicAriaSort} class="topic-column">
+                                <button class="sort-button" type="button" data-sort-by="Topic" onclick={handleSort}>
+                                    <span>Topic</span>
+                                    <template if:true={isTopicSorted}>
+                                        <lightning-icon icon-name={sortIconName} size="xx-small" alternative-text=""></lightning-icon>
+                                    </template>
+                                </button>
+                            </th>
+                            <th scope="col" aria-sort={titleAriaSort} class="title-column">
+                                <button class="sort-button" type="button" data-sort-by="Name" onclick={handleSort}>
+                                    <span>Note Title</span>
+                                    <template if:true={isTitleSorted}>
+                                        <lightning-icon icon-name={sortIconName} size="xx-small" alternative-text=""></lightning-icon>
+                                    </template>
+                                </button>
+                            </th>
+                            <th scope="col">Note</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={notes} for:item="note">
+                            <tr key={note.id}>
+                                <td>
+                                    <lightning-formatted-date-time
+                                        value={note.createdDate}
+                                        year="numeric"
+                                        month="short"
+                                        day="2-digit"
+                                        hour="2-digit"
+                                        minute="2-digit">
+                                    </lightning-formatted-date-time>
+                                </td>
+                                <td>{note.topicLabel}</td>
+                                <td>
+                                    <a class="list-title" href={note.recordUrl} target="_blank" rel="noopener noreferrer">
+                                        {note.title}
+                                    </a>
+                                </td>
+                                <td>
+                                    <div class="note-preview">{note.notePreview}</div>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </template>
+
+        <template if:true={isLoading}>
+            <div class="loading-row">
+                <lightning-spinner alternative-text="Loading notes" size="small"></lightning-spinner>
+            </div>
+        </template>
+
+        <template if:true={showEmptyState}>
+            <div class="empty-state">No notes found.</div>
+        </template>
+
+        <div class="sentinel" data-id="sentinel"></div>
+    </section>
+</template>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>61.0</apiVersion>
+    <isExposed>true</isExposed>
+    <masterLabel>Litify Notes Navigator</masterLabel>
+    <description>Displays Litify Notes related to the current record with infinite scroll and basic filters.</description>
+    <targets>
+        <target>lightning__RecordPage</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__RecordPage">
+            <property name="pageSize" type="Integer" label="Page Size" default="20" min="1" max="50" description="Number of notes to load per page." />
+            <objects>
+                <object>litify_pm__Matter__c</object>
+                <object>litify_pm__Intake__c</object>
+            </objects>
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>

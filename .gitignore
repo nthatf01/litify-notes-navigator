@@ -1,0 +1,35 @@
+# Salesforce local state
+.sf/
+.sfdx/
+.localdevserver/
+.forceignore.local
+config/project-scratch-def.local.json
+
+# Dependencies and build output
+node_modules/
+coverage/
+dist/
+build/
+
+# Logs and caches
+*.log
+.eslintcache
+
+# Secrets and local environment files
+.env
+.env.*
+*.pem
+*.key
+*.crt
+*.p12
+server.key
+jwt.key
+auth/
+secrets/
+
+# OS and editor noise
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
