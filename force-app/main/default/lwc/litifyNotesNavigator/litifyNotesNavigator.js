@@ -41,6 +41,7 @@ export default class LitifyNotesNavigator extends NavigationMixin(LightningEleme
     observer;
     filterDebounce;
     lookupFieldApiName;
+    refreshToken = 'initial';
 
     connectedCallback() {
         this.initialize();
@@ -85,6 +86,10 @@ export default class LitifyNotesNavigator extends NavigationMixin(LightningEleme
         return !this.recordId || !this.lookupFieldApiName;
     }
 
+    get isRefreshDisabled() {
+        return !this.recordId || this.isLoading;
+    }
+
     get sortIconName() {
         return this.sortDirection === SORT_ASC ? 'utility:arrowup' : 'utility:arrowdown';
     }
@@ -127,7 +132,10 @@ export default class LitifyNotesNavigator extends NavigationMixin(LightningEleme
 
     async loadFilterOptions() {
         try {
-            const result = await getFilterOptions({ parentRecordId: this.recordId });
+            const result = await getFilterOptions({
+                parentRecordId: this.recordId,
+                refreshToken: this.refreshToken
+            });
             this.lookupFieldApiName = result.lookupFieldApiName;
             this.topicOptions = (result.topics || []).map((item) => ({ label: item.label, value: item.value }));
             this.createdByOptions = (result.createdByUsers || []).map((item) => ({ label: item.label, value: item.value }));
@@ -164,7 +172,8 @@ export default class LitifyNotesNavigator extends NavigationMixin(LightningEleme
                     createdById: this.createdById || null,
                     keyword: this.keyword || null,
                     sortBy: this.sortBy,
-                    sortDirection: this.sortDirection
+                    sortDirection: this.sortDirection,
+                    refreshToken: this.refreshToken
                 }
             });
 
@@ -230,6 +239,19 @@ export default class LitifyNotesNavigator extends NavigationMixin(LightningEleme
 
     handleToggleView() {
         this.viewMode = this.showListView ? VIEW_EXPANDED : VIEW_LIST;
+    }
+
+    async handleRefresh() {
+        if (this.isRefreshDisabled) {
+            return;
+        }
+
+        window.clearTimeout(this.filterDebounce);
+        this.refreshToken = String(Date.now());
+        await Promise.all([
+            this.loadFilterOptions(),
+            this.loadNotes(true)
+        ]);
     }
 
     handleSort(event) {

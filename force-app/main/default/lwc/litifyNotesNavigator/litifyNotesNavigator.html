@@ -10,6 +10,13 @@
                 </div>
                 <div class="header-actions">
                     <lightning-button label={viewToggleLabel} onclick={handleToggleView}></lightning-button>
+                    <lightning-button-icon
+                        icon-name="utility:refresh"
+                        alternative-text="Refresh"
+                        title="Refresh"
+                        onclick={handleRefresh}
+                        disabled={isRefreshDisabled}>
+                    </lightning-button-icon>
                     <lightning-button label="New" variant="brand" onclick={handleNew} disabled={isNewDisabled}></lightning-button>
                 </div>
             </div>
@@ -90,14 +97,6 @@
                                     </template>
                                 </button>
                             </th>
-                            <th scope="col" aria-sort={topicAriaSort} class="topic-column">
-                                <button class="sort-button" type="button" data-sort-by="Topic" onclick={handleSort}>
-                                    <span>Topic</span>
-                                    <template if:true={isTopicSorted}>
-                                        <lightning-icon icon-name={sortIconName} size="xx-small" alternative-text=""></lightning-icon>
-                                    </template>
-                                </button>
-                            </th>
                             <th scope="col" aria-sort={titleAriaSort} class="title-column">
                                 <button class="sort-button" type="button" data-sort-by="Name" onclick={handleSort}>
                                     <span>Note Title</span>
@@ -106,6 +105,15 @@
                                     </template>
                                 </button>
                             </th>
+                            <th scope="col" aria-sort={topicAriaSort} class="topic-column">
+                                <button class="sort-button" type="button" data-sort-by="Topic" onclick={handleSort}>
+                                    <span>Topic</span>
+                                    <template if:true={isTopicSorted}>
+                                        <lightning-icon icon-name={sortIconName} size="xx-small" alternative-text=""></lightning-icon>
+                                    </template>
+                                </button>
+                            </th>
+                            <th scope="col" class="created-by-column">Created By</th>
                             <th scope="col">Note</th>
                         </tr>
                     </thead>
@@ -122,12 +130,13 @@
                                         minute="2-digit">
                                     </lightning-formatted-date-time>
                                 </td>
-                                <td>{note.topicLabel}</td>
                                 <td>
                                     <a class="list-title" href={note.recordUrl} target="_blank" rel="noopener noreferrer">
                                         {note.title}
                                     </a>
                                 </td>
+                                <td>{note.topicLabel}</td>
+                                <td>{note.createdByName}</td>
                                 <td>
                                     <div class="note-preview">{note.notePreview}</div>
                                 </td>

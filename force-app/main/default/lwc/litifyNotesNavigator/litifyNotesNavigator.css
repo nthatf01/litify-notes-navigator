@@ -106,7 +106,7 @@
 }
 
 .notes-table {
-    min-width: 58rem;
+    min-width: 72rem;
     table-layout: fixed;
 }
 
@@ -127,11 +127,15 @@
 }
 
 .topic-column {
-    width: 11rem;
+    width: 10rem;
 }
 
 .title-column {
     width: 18rem;
+}
+
+.created-by-column {
+    width: 12rem;
 }
 
 .sort-button {

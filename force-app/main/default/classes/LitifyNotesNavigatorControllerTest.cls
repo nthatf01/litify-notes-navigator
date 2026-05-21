@@ -123,7 +123,7 @@ private class LitifyNotesNavigatorControllerTest {
     static void getFilterOptions_returnsMatterMetadata() {
         Test.startTest();
         LitifyNotesNavigatorController.FilterOptionsResponse response =
-            LitifyNotesNavigatorController.getFilterOptions(fakeIdFor('litify_pm__Matter__c'));
+            LitifyNotesNavigatorController.getFilterOptions(fakeIdFor('litify_pm__Matter__c'), null);
         Test.stopTest();
 
         System.assertEquals('litify_pm__Matter__c', response.parentObjectApiName);

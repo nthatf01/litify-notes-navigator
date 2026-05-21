@@ -27,6 +27,7 @@ public with sharing class LitifyNotesNavigatorController {
         @AuraEnabled public String keyword { get; set; }
         @AuraEnabled public String sortBy { get; set; }
         @AuraEnabled public String sortDirection { get; set; }
+        @AuraEnabled public String refreshToken { get; set; }
     }
 
     public class NotesResponse {
@@ -153,7 +154,7 @@ public with sharing class LitifyNotesNavigatorController {
     }
 
     @AuraEnabled(cacheable=true)
-    public static FilterOptionsResponse getFilterOptions(Id parentRecordId) {
+    public static FilterOptionsResponse getFilterOptions(Id parentRecordId, String refreshToken) {
         if (parentRecordId == null) {
             throw new AuraHandledException('parentRecordId is required.');
         }
