@@ -27,7 +27,7 @@ export default class LitifyNotesNavigator extends NavigationMixin(LightningEleme
     keyword = '';
     topic = '';
     createdById = '';
-    viewMode = VIEW_EXPANDED;
+    viewMode = VIEW_LIST;
     sortBy = SORT_CREATED_DATE;
     sortDirection = SORT_DESC;
 
