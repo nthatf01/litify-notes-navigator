@@ -106,6 +106,20 @@ private class LitifyNotesNavigatorControllerTest {
     }
 
     @IsTest
+    static void getNotes_acceptsNoTopicFilter() {
+        LitifyNotesNavigatorController.NotesRequest request = new LitifyNotesNavigatorController.NotesRequest();
+        request.parentRecordId = fakeIdFor('litify_pm__Matter__c');
+        request.topic = LitifyNotesNavigatorController.NO_TOPIC_OPTION_VALUE;
+
+        Test.startTest();
+        LitifyNotesNavigatorController.NotesResponse response = LitifyNotesNavigatorController.getNotes(request);
+        Test.stopTest();
+
+        System.assertEquals(false, response.hasMore);
+        System.assertEquals(0, response.notes.size());
+    }
+
+    @IsTest
     static void getFilterOptions_returnsMatterMetadata() {
         Test.startTest();
         LitifyNotesNavigatorController.FilterOptionsResponse response =
@@ -116,6 +130,21 @@ private class LitifyNotesNavigatorControllerTest {
         System.assertEquals('litify_pm__lit_Matter__c', response.lookupFieldApiName);
         System.assertNotEquals(null, response.topics);
         System.assertNotEquals(null, response.createdByUsers);
+    }
+
+    @IsTest
+    static void findNoteLookupField_prefersKnownMatterAndIntakeLookups() {
+        Test.startTest();
+        String matterLookup = LitifyNotesNavigatorController.findNoteLookupField(
+            Schema.getGlobalDescribe().get('litify_pm__Matter__c')
+        );
+        String intakeLookup = LitifyNotesNavigatorController.findNoteLookupField(
+            Schema.getGlobalDescribe().get('litify_pm__Intake__c')
+        );
+        Test.stopTest();
+
+        System.assertEquals('litify_pm__lit_Matter__c', matterLookup);
+        System.assertEquals('litify_pm__lit_Intake__c', intakeLookup);
     }
 
     @IsTest

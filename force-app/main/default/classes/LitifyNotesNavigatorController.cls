@@ -2,11 +2,18 @@ public with sharing class LitifyNotesNavigatorController {
     private static final String NOTE_OBJECT_API_NAME = 'litify_pm__lit_Note__c';
     private static final String TOPIC_FIELD_API_NAME = 'litify_pm__lit_Topic__c';
     private static final String BODY_FIELD_API_NAME = 'litify_pm__lit_Note__c';
+    private static final String MATTER_OBJECT_API_NAME = 'litify_pm__Matter__c';
+    private static final String INTAKE_OBJECT_API_NAME = 'litify_pm__Intake__c';
+    private static final Map<String, String> PREFERRED_LOOKUP_FIELDS_BY_PARENT = new Map<String, String>{
+        MATTER_OBJECT_API_NAME => 'litify_pm__lit_Matter__c',
+        INTAKE_OBJECT_API_NAME => 'litify_pm__lit_Intake__c'
+    };
     private static final String SORT_CREATED_DATE = 'CreatedDate';
     private static final String SORT_TITLE = 'Name';
     private static final String SORT_TOPIC = 'Topic';
     private static final String SORT_ASC = 'ASC';
     private static final String SORT_DESC = 'DESC';
+    @TestVisible private static final String NO_TOPIC_OPTION_VALUE = '__LITIFY_NOTES_NAVIGATOR_NO_TOPIC__';
     private static final Integer MAX_PAGE_SIZE = 50;
 
     public class NotesRequest {
@@ -95,7 +102,9 @@ public with sharing class LitifyNotesNavigatorController {
 
         List<String> conditions = new List<String>{ lookupFieldApiName + ' = :parentRecordId' };
 
-        if (String.isNotBlank(request.topic)) {
+        if (request.topic == NO_TOPIC_OPTION_VALUE) {
+            conditions.add(TOPIC_FIELD_API_NAME + ' = null');
+        } else if (String.isNotBlank(request.topic)) {
             conditions.add(TOPIC_FIELD_API_NAME + ' = :topic');
             binds.put('topic', request.topic);
         }
@@ -155,7 +164,7 @@ public with sharing class LitifyNotesNavigatorController {
         FilterOptionsResponse response = new FilterOptionsResponse();
         response.parentObjectApiName = parentType.getDescribe().getName();
         response.lookupFieldApiName = lookupFieldApiName;
-        response.topics = getTopicOptions();
+        response.topics = getTopicOptions(lookupFieldApiName, parentRecordId);
         response.createdByUsers = getCreatedByOptions(lookupFieldApiName, parentRecordId);
         return response;
     }
@@ -249,6 +258,7 @@ public with sharing class LitifyNotesNavigatorController {
         return null;
     }
 
+    @TestVisible
     private static String findNoteLookupField(Schema.SObjectType parentType) {
         Schema.SObjectType noteType = Schema.getGlobalDescribe().get(NOTE_OBJECT_API_NAME);
         if (noteType == null) {
@@ -257,30 +267,80 @@ public with sharing class LitifyNotesNavigatorController {
 
         String parentObjectApiName = parentType.getDescribe().getName();
         Map<String, Schema.SObjectField> noteFields = noteType.getDescribe().fields.getMap();
+        String preferredFieldName = PREFERRED_LOOKUP_FIELDS_BY_PARENT.get(parentObjectApiName);
+        if (String.isNotBlank(preferredFieldName) && noteFields.containsKey(preferredFieldName)) {
+            Schema.DescribeFieldResult preferredField = noteFields.get(preferredFieldName).getDescribe();
+            if (fieldReferencesParent(preferredField, parentObjectApiName)) {
+                return preferredField.getName();
+            }
+        }
 
         for (String fieldName : noteFields.keySet()) {
             Schema.DescribeFieldResult dfr = noteFields.get(fieldName).getDescribe();
-            if (dfr.getType() == Schema.DisplayType.REFERENCE) {
-                for (Schema.SObjectType refType : dfr.getReferenceTo()) {
-                    if (refType.getDescribe().getName() == parentObjectApiName) {
-                        return dfr.getName();
-                    }
-                }
+            if (fieldReferencesParent(dfr, parentObjectApiName)) {
+                return dfr.getName();
             }
         }
 
         throw new AuraHandledException('No lookup field on ' + NOTE_OBJECT_API_NAME + ' references ' + parentObjectApiName + '.');
     }
 
-    private static List<PicklistOption> getTopicOptions() {
+    private static Boolean fieldReferencesParent(Schema.DescribeFieldResult dfr, String parentObjectApiName) {
+        if (dfr.getType() != Schema.DisplayType.REFERENCE) {
+            return false;
+        }
+
+        for (Schema.SObjectType refType : dfr.getReferenceTo()) {
+            if (refType.getDescribe().getName() == parentObjectApiName) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static List<PicklistOption> getTopicOptions(String lookupFieldApiName, Id parentRecordId) {
         List<PicklistOption> options = new List<PicklistOption>();
+        Set<String> usedTopicValues = new Set<String>();
+        Boolean hasBlankTopic = false;
+
+        Map<String, Object> binds = new Map<String, Object>{ 'parentRecordId' => parentRecordId };
+        String usedTopicSoql = 'SELECT ' + TOPIC_FIELD_API_NAME + ' topicValue ' +
+            'FROM ' + NOTE_OBJECT_API_NAME + ' ' +
+            'WHERE ' + lookupFieldApiName + ' = :parentRecordId ' +
+            'GROUP BY ' + TOPIC_FIELD_API_NAME + ' ' +
+            'LIMIT 2000';
+
+        for (SObject sob : Database.queryWithBinds(usedTopicSoql, binds, AccessLevel.USER_MODE)) {
+            AggregateResult ar = (AggregateResult) sob;
+            String topicValue = (String) ar.get('topicValue');
+            if (String.isBlank(topicValue)) {
+                hasBlankTopic = true;
+            } else {
+                usedTopicValues.add(topicValue);
+            }
+        }
+
+        if (hasBlankTopic) {
+            options.add(new PicklistOption('No Topic', NO_TOPIC_OPTION_VALUE));
+        }
+        if (usedTopicValues.isEmpty()) {
+            return options;
+        }
+
         Schema.SObjectType noteType = Schema.getGlobalDescribe().get(NOTE_OBJECT_API_NAME);
         Schema.DescribeFieldResult topicField = noteType.getDescribe().fields.getMap().get(TOPIC_FIELD_API_NAME).getDescribe();
 
         for (Schema.PicklistEntry entry : topicField.getPicklistValues()) {
-            if (entry.isActive()) {
+            if (usedTopicValues.contains(entry.getValue())) {
                 options.add(new PicklistOption(entry.getLabel(), entry.getValue()));
+                usedTopicValues.remove(entry.getValue());
             }
+        }
+
+        List<String> unmatchedTopicValues = new List<String>(usedTopicValues);
+        unmatchedTopicValues.sort();
+        for (String topicValue : unmatchedTopicValues) {
+            options.add(new PicklistOption(topicValue, topicValue));
         }
         return options;
     }
