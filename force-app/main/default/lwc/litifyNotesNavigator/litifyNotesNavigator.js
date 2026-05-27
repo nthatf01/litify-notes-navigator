@@ -302,6 +302,28 @@ export default class LitifyNotesNavigator extends NavigationMixin(LightningEleme
         }
     }
 
+    handleEdit(event) {
+        const recordId = event.currentTarget.dataset.recordId;
+        if (!recordId) {
+            return;
+        }
+
+        const pageReference = {
+            type: 'standard__recordPage',
+            attributes: {
+                recordId,
+                objectApiName: NOTE_OBJECT_API_NAME,
+                actionName: 'edit'
+            }
+        };
+
+        try {
+            this[NavigationMixin.Navigate](pageReference);
+        } catch (error) {
+            this.setError(error);
+        }
+    }
+
     setError(error) {
         this.errorMessage = error?.body?.message || error?.message || 'An unexpected error occurred.';
     }

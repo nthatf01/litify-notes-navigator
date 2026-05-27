@@ -72,7 +72,7 @@
                             </lightning-formatted-date-time>
                         </div>
 
-                        <a class="note-title" href={note.recordUrl} target="_blank" rel="noopener noreferrer">
+                        <a class="note-title" href={note.recordUrl}>
                             {note.title}
                         </a>
 
@@ -115,6 +115,9 @@
                             </th>
                             <th scope="col" class="created-by-column">Created By</th>
                             <th scope="col">Note</th>
+                            <th scope="col" class="actions-column">
+                                <span class="slds-assistive-text">Actions</span>
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -131,7 +134,7 @@
                                     </lightning-formatted-date-time>
                                 </td>
                                 <td>
-                                    <a class="list-title" href={note.recordUrl} target="_blank" rel="noopener noreferrer">
+                                    <a class="list-title" href={note.recordUrl}>
                                         {note.title}
                                     </a>
                                 </td>
@@ -139,6 +142,17 @@
                                 <td>{note.createdByName}</td>
                                 <td>
                                     <div class="note-preview">{note.notePreview}</div>
+                                </td>
+                                <td class="actions-cell">
+                                    <lightning-button-icon
+                                        icon-name="utility:edit"
+                                        alternative-text="Edit note"
+                                        title="Edit note"
+                                        variant="bare"
+                                        size="small"
+                                        data-record-id={note.id}
+                                        onclick={handleEdit}>
+                                    </lightning-button-icon>
                                 </td>
                             </tr>
                         </template>
