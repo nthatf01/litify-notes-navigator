@@ -72,7 +72,7 @@
                             </lightning-formatted-date-time>
                         </div>
 
-                        <a class="note-title" href={note.recordUrl}>
+                        <a class="note-title" href={note.recordUrl} data-record-id={note.id} onclick={handleOpenNote}>
                             {note.title}
                         </a>
 
@@ -134,7 +134,7 @@
                                     </lightning-formatted-date-time>
                                 </td>
                                 <td>
-                                    <a class="list-title" href={note.recordUrl}>
+                                    <a class="list-title" href={note.recordUrl} data-record-id={note.id} onclick={handleOpenNote}>
                                         {note.title}
                                     </a>
                                 </td>

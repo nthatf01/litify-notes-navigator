@@ -302,18 +302,32 @@ export default class LitifyNotesNavigator extends NavigationMixin(LightningEleme
         }
     }
 
+    handleOpenNote(event) {
+        const recordId = event.currentTarget.dataset.recordId;
+        if (!recordId || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button !== 0) {
+            return;
+        }
+
+        event.preventDefault();
+        this.navigateToRecord(recordId, 'view');
+    }
+
     handleEdit(event) {
         const recordId = event.currentTarget.dataset.recordId;
         if (!recordId) {
             return;
         }
 
+        this.navigateToRecord(recordId, 'edit');
+    }
+
+    navigateToRecord(recordId, actionName) {
         const pageReference = {
             type: 'standard__recordPage',
             attributes: {
                 recordId,
                 objectApiName: NOTE_OBJECT_API_NAME,
-                actionName: 'edit'
+                actionName
             }
         };
 
